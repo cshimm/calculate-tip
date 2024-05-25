@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.tiptime
 
 import android.os.Bundle
@@ -78,10 +63,12 @@ fun TipTimeLayout() {
     var amountInput by remember { mutableStateOf("") }
     var tipInput by remember { mutableStateOf("") }
     var roundUp by remember { mutableStateOf(false) }
+    var numPeople by remember { mutableStateOf("")}
 
     val amount = amountInput.toDoubleOrNull() ?: 0.0
     val tipPercent = tipInput.toDoubleOrNull() ?: 0.0
-    val tip = calculateTip(amount, tipPercent, roundUp)
+    val people = numPeople.toIntOrNull() ?: 1
+    val tip = calculateTip(amount, tipPercent, roundUp, people)
 
     Column(
         modifier = Modifier
@@ -114,7 +101,7 @@ fun TipTimeLayout() {
             leadingIcon = R.drawable.percent,
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done
+                imeAction = ImeAction.Next
             ),
             value = tipInput,
             onValueChanged = { tipInput = it },
@@ -124,6 +111,17 @@ fun TipTimeLayout() {
             roundUp = roundUp,
             onRoundUpChanged = { roundUp = it },
             modifier = Modifier.padding(bottom = 32.dp)
+        )
+        EditNumberField(
+            label = R.string.num_people,
+            leadingIcon = R.drawable.baseline_people_24,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            value = numPeople,
+            onValueChanged = { numPeople = it },
+            modifier = Modifier.padding(bottom = 32.dp).fillMaxWidth(),
         )
         Text(
             text = stringResource(R.string.tip_amount, tip),
@@ -179,11 +177,12 @@ fun RoundTheTipRow(
  * according to the local currency.
  * Example would be "$10.00".
  */
-private fun calculateTip(amount: Double, tipPercent: Double = 15.0, roundUp: Boolean): String {
+private fun calculateTip(amount: Double, tipPercent: Double = 15.0, roundUp: Boolean, people: Int): String {
     var tip = tipPercent / 100 * amount
     if (roundUp) {
         tip = kotlin.math.ceil(tip)
     }
+    tip /= people
     return NumberFormat.getCurrencyInstance().format(tip)
 }
 
